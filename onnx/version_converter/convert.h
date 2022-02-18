@@ -762,6 +762,11 @@ class DefaultVersionConverter : public BaseVersionConverter {
         const OpSetID& target_version) const override;
 };
 
+void convert_version_path(
+  const std::string& model_path,
+  const std::string& save_path,
+  int target_version);
+
 ModelProto ConvertVersion(
     const ModelProto& mp_in,
     int target_version);

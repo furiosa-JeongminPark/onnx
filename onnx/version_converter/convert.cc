@@ -3,6 +3,8 @@
  */
 
 #include "onnx/version_converter/convert.h"
+#include <fstream>
+#include "onnx/checker.h"
 
 namespace ONNX_NAMESPACE { namespace version_conversion {
 
@@ -132,6 +134,31 @@ ModelProto DefaultVersionConverter::convert_version(
   ModelProto mp_out = PrepareOutput(mp_in);
   ExportModelProto(&mp_out, g);
   return mp_out;
+}
+
+void convert_version_path(const std::string& model_path, const std::string& save_path, int target_version) {
+  ModelProto model;
+  std::fstream model_stream(model_path, std::ios::in | std::ios::binary);
+  if (!model_stream.good()) {
+    fail_check("Unable to open model file:", model_path, ". Please check if it is a valid file.");
+  }
+  std::string data{std::istreambuf_iterator<char>{model_stream}, std::istreambuf_iterator<char>{}};
+  if (!ParseProtoFromBytes(&model, data.c_str(), data.size())) {
+    fail_check(
+        "Unable to parse model from file:", model_path, ". Please check if it is a valid protobuf file of model.");
+  }
+
+  ModelProto converted_model = ConvertVersion(model, target_version);
+
+  std::fstream output(save_path, std::ios::out | std::ios::trunc | std::ios::binary);
+  std::string model_string;
+  ONNX_TRY {
+    converted_model.SerializeToString(&model_string);
+    output << model_string;
+  }
+  ONNX_CATCH(...) {
+    fail_check("Unable to save inferred model to the target path:", save_path);
+  }
 }
 
 }} // namespace ONNX_NAMESPACE::version_conversion
