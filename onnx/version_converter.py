@@ -14,6 +14,7 @@ import onnx
 import onnx.onnx_cpp2py_export.version_converter as C
 from onnx import ModelProto
 from typing import Text, Sequence
+from six import string_types
 
 """Apply the version conversion on the serialized ModelProto.
 
@@ -173,6 +174,18 @@ def convert_version(model, target_version):  # type: (ModelProto, int) -> ModelP
     model_str = model.SerializeToString()
     converted_model_str = C.convert_version(model_str, target_version)
     return onnx.load_from_string(converted_model_str)
+
+def convert_version_path(model_path, target_version, output_path = '', ): # type: (Text, int, Text) -> None
+    if isinstance(model_path, ModelProto):
+        raise TypeError('convert_version_path only accepts model Path (String),'
+                        'you can use infer_shapes for the ModelProto.')
+    elif isinstance(model_path, string_types):
+        if output_path == '':
+            output_path = model_path
+        C.convert_version_path(model_path, output_path, target_version)
+    else:
+        raise TypeError('convert_version_path only accepts model path (String), '
+                         'incorrect type: {}'.format(type(model_path)))
 
 
 ConvertError = C.ConvertError

@@ -314,6 +314,10 @@ PYBIND11_MODULE(onnx_cpp2py_export, onnx_cpp2py_export) {
         return py::bytes(out);
       });
 
+  version_converter.def("convert_version_path", [](const std::string& model_path, const std::string& output_path, py::int_ target) {
+    version_conversion::convert_version_path(model_path, output_path, target);
+  });
+
   // Submodule `shape_inference`
   auto shape_inference = onnx_cpp2py_export.def_submodule("shape_inference");
   shape_inference.doc() = "Shape Inference submodule";
